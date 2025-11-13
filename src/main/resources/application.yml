@@ -23,3 +23,6 @@ spring:
       # 안전하게 비활성화하고 Flyway/Liquibase 같은 마이그레이션 도구로 관리하세요.
       initialize-schema: never
       cleanup-cron: "0 0 * * * *"  # 매 시간 만료된 세션 정리
+
+server:
+  forward-headers-strategy: native
