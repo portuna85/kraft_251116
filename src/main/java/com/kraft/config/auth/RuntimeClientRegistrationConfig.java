@@ -1,13 +1,17 @@
 package com.kraft.config.auth;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 @Configuration
@@ -15,6 +19,7 @@ public class RuntimeClientRegistrationConfig {
 
     @Bean
     @ConditionalOnMissingBean(ClientRegistrationRepository.class)
+    @ConditionalOnExpression("'${GOOGLE_CLIENT_ID:}' != '' or '${NAVER_CLIENT_ID:}' != ''")
     public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> regs = new ArrayList<>();
 
@@ -28,6 +33,11 @@ public class RuntimeClientRegistrationConfig {
         String nSecret = System.getenv("NAVER_CLIENT_SECRET");
         if (nId != null && !nId.isBlank() && nSecret != null && !nSecret.isBlank()) {
             regs.add(naverRegistration(nId, nSecret));
+        }
+
+        if (regs.isEmpty()) {
+            // defensive fallback: return a no-op ClientRegistrationRepository to avoid startup failures
+            return new NoopClientRegistrationRepository();
         }
 
         return new InMemoryClientRegistrationRepository(regs);
@@ -64,5 +74,18 @@ public class RuntimeClientRegistrationConfig {
                 .clientName("Naver")
                 .build();
     }
-}
 
+    // Defensive no-op implementation
+    private static class NoopClientRegistrationRepository implements ClientRegistrationRepository, Iterable<ClientRegistration> {
+        @Override
+        public ClientRegistration findByRegistrationId(String registrationId) {
+            return null;
+        }
+
+        @Override
+        @NonNull
+        public Iterator<ClientRegistration> iterator() {
+            return Collections.emptyIterator();
+        }
+    }
+}

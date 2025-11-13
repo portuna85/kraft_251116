@@ -3,7 +3,8 @@ spring:
     name: kraft
   profiles:
     # 환경변수 SPRING_PROFILES_ACTIVE로 덮어쓸 수 있습니다
-    active: ${SPRING_PROFILES_ACTIVE:dev,oauth}
+    # OAuth를 사용하려면 SPRING_PROFILES_ACTIVE=dev,oauth로 설정하세요
+    active: ${SPRING_PROFILES_ACTIVE:-dev}
 
   jpa:
     show-sql: true

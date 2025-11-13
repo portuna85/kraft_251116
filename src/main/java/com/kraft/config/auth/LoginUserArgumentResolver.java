@@ -23,7 +23,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private final HttpSession httpSession;
     private final UserRepository userRepository;
 
     @Override
@@ -35,9 +34,16 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
 
     @Override
     public Object resolveArgument(@NonNull MethodParameter parameter, @NonNull ModelAndViewContainer mavContainer, @NonNull NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-        Object sessionUser = httpSession.getAttribute("user");
-        if (sessionUser != null) {
-            return sessionUser;
+        // Try to obtain the HttpSession from the current request (safer in tests and servlet container)
+        jakarta.servlet.http.HttpServletRequest servletRequest = webRequest.getNativeRequest(jakarta.servlet.http.HttpServletRequest.class);
+        if (servletRequest != null) {
+            jakarta.servlet.http.HttpSession session = servletRequest.getSession(false);
+            if (session != null) {
+                Object sessionUser = session.getAttribute("user");
+                if (sessionUser != null) {
+                    return sessionUser;
+                }
+            }
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

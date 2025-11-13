@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import jakarta.annotation.PostConstruct;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @Profile("dev")
@@ -14,19 +16,31 @@ public class FlywayDevInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(FlywayDevInitializer.class);
 
-    private final Flyway flyway;
+    private final DataSource dataSource;
 
-    public FlywayDevInitializer(Flyway flyway) {
-        this.flyway = flyway;
+    @Value("${spring.flyway.locations:classpath:db/migration}")
+    private String locations;
+
+    @Value("${spring.flyway.baseline-on-migrate:true}")
+    private boolean baselineOnMigrate;
+
+    public FlywayDevInitializer(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @PostConstruct
     public void migrateOrBaseline() {
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations(locations.split(","))
+                .baselineOnMigrate(baselineOnMigrate)
+                .load();
+
         try {
             flyway.migrate();
             log.info("Flyway migration completed successfully (dev initializer).");
         } catch (Exception ex) {
-            log.warn("Flyway migrate failed, attempting baseline-on-migrate: {}", ex.getMessage());
+            log.warn("Flyway migrate failed, attempting baseline + migrate: {}", ex.getMessage());
             try {
                 flyway.baseline();
                 flyway.migrate();
