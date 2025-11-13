@@ -7,6 +7,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -63,16 +64,16 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // 프로필 페이지: 공개
                         .requestMatchers("/profile").permitAll()
-                        // 로그인 페이지: 공개
-                        .requestMatchers("/login").permitAll()
-                        // 게시글 조회 API: 공개 (목록, 상세)
-                        .requestMatchers("/api/post", "/api/post/*", "/api/post/list").permitAll()
-                        // 게시글 작성/수정/삭제 API: USER 권한 필요
-                        .requestMatchers("/api/post").hasRole(Role.USER.name())
+                        // 게시글 조회 API: 공개 (GET 메서드)
+                        .requestMatchers(HttpMethod.GET, "/api/post", "/api/post/*", "/api/post/list").permitAll()
+                        // 게시글 작성/수정/삭제 API: USER 권한 필요 (POST, PUT, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/post").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/post/*").hasRole(Role.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/*").hasRole(Role.USER.name())
                         // 게시글 작성/수정 페이지: 인증 필요
                         .requestMatchers("/posts/save", "/posts/update/**").authenticated()
-                        // 나머지는 인증 필요
-                        .anyRequest().authenticated()
+                        // 나머지 요청은 허용 (리디렉션 루프 방지)
+                        .anyRequest().permitAll()
                 )
 
                 .logout(logout -> logout
@@ -88,14 +89,14 @@ public class SecurityConfig {
                     .userInfoEndpoint(userInfo -> userInfo
                             .userService(oauthService)
                     )
+                    .defaultSuccessUrl("/", true)
             );
             log.info("OAuth2 로그인 활성화됨");
         } else {
-            // OAuth2가 설정되지 않은 경우 기본 폼 로그인 사용
+            // OAuth2가 설정되지 않은 경우 기본 폼 로그인 사용 (Spring Security 기본 로그인 페이지)
             http.formLogin(form -> form
-                    .loginPage("/login")
-                    .permitAll()
                     .defaultSuccessUrl("/", true)
+                    .permitAll()
             );
             log.info("OAuth2 미사용, 폼 로그인 활성화됨");
         }
