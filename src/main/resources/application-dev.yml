@@ -27,7 +27,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MariaDBDialect
+        # MariaDBDialect은 자동 감지되므로 명시 불필요 (HHH90000025 경고 제거)
         jdbc:
           time_zone: Asia/Seoul
 
