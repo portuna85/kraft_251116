@@ -26,12 +26,12 @@ import java.util.Collections;
  * - 사용자 정보를 DB에 저장/업데이트
  * - 세션에 사용자 정보 저장
  *
- * @Profile("oauth"): oauth 프로파일이 활성화된 경우에만 빈으로 등록
- * - test 프로파일에서는 로드되지 않음 (테스트 시 MockBean 사용)
+ * @Profile("!test"): 테스트 환경을 제외한 모든 프로파일에서 활성화
+ * - OAuth 클라이언트가 설정된 경우에만 실제로 사용됨
  */
 @RequiredArgsConstructor
 @Service
-@Profile("oauth")
+@Profile("!test")
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final UserRepository userRepository;

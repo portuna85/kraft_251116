@@ -64,6 +64,10 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // 프로필 페이지: 공개
                         .requestMatchers("/profile").permitAll()
+                        // OAuth2 로그인 콜백 URL: 공개
+                        .requestMatchers("/login/oauth2/code/*", "/oauth2/**").permitAll()
+                        // 에러 페이지: 공개
+                        .requestMatchers("/error").permitAll()
                         // 게시글 조회 API: 공개 (GET 메서드)
                         .requestMatchers(HttpMethod.GET, "/api/post", "/api/post/*", "/api/post/list").permitAll()
                         // 게시글 작성/수정/삭제 API: USER 권한 필요 (POST, PUT, DELETE)
@@ -90,12 +94,14 @@ public class SecurityConfig {
                             .userService(oauthService)
                     )
                     .defaultSuccessUrl("/", true)
+                    .failureUrl("/?error=oauth")
             );
             log.info("OAuth2 로그인 활성화됨");
         } else {
             // OAuth2가 설정되지 않은 경우 기본 폼 로그인 사용 (Spring Security 기본 로그인 페이지)
             http.formLogin(form -> form
                     .defaultSuccessUrl("/", true)
+                    .failureUrl("/?error=login")
                     .permitAll()
             );
             log.info("OAuth2 미사용, 폼 로그인 활성화됨");
