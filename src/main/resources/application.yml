@@ -9,6 +9,11 @@ spring:
     show-sql: true
     open-in-view: false  # OSIV 비활성화 (성능 최적화)
 
+  # Flyway 기본 설정: 이미 스키마가 존재할 때 baseline-on-migrate를 켜서 flyway_schema_history를 초기화
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
   # Spring Session 설정
   session:
     store-type: jdbc
