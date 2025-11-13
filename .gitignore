@@ -40,8 +40,37 @@ application-*.local.yml
 # Test coverage
 .coverage
 htmlcov/
+coverage/
 
 # Temporary files
 *.tmp
 *.bak
+*.swp
+*~
+
+# Docker
+.docker/
+docker/mysql/data/
+docker/redis/data/
+docker/minio/data/
+
+# Backup files
+*.sql.gz
+*.backup
+backup/
+
+# Node modules (if using frontend build tools)
+node_modules/
+dist/
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.Trash-*
 
