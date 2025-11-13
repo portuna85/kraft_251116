@@ -1,5 +1,7 @@
 package com.kraft.config.auth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,8 @@ import java.util.List;
 @Configuration
 public class RuntimeClientRegistrationConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(RuntimeClientRegistrationConfig.class);
+
     @Bean
     @ConditionalOnMissingBean(ClientRegistrationRepository.class)
     public ClientRegistrationRepository clientRegistrationRepository() {
@@ -25,19 +29,26 @@ public class RuntimeClientRegistrationConfig {
         String gSecret = System.getenv("GOOGLE_CLIENT_SECRET");
         if (gId != null && !gId.isBlank() && gSecret != null && !gSecret.isBlank()) {
             regs.add(googleRegistration(gId, gSecret));
+            log.info("Google OAuth2 client registered");
+        } else {
+            log.warn("Google OAuth2 credentials not found in environment variables");
         }
 
         String nId = System.getenv("NAVER_CLIENT_ID");
         String nSecret = System.getenv("NAVER_CLIENT_SECRET");
         if (nId != null && !nId.isBlank() && nSecret != null && !nSecret.isBlank()) {
             regs.add(naverRegistration(nId, nSecret));
+            log.info("Naver OAuth2 client registered");
+        } else {
+            log.warn("Naver OAuth2 credentials not found in environment variables");
         }
 
         if (regs.isEmpty()) {
-            // defensive fallback: return a no-op ClientRegistrationRepository to avoid startup failures
+            log.warn("No OAuth2 clients registered. Using NoopClientRegistrationRepository. OAuth login will not work.");
             return new NoopClientRegistrationRepository();
         }
 
+        log.info("Created ClientRegistrationRepository with {} client(s)", regs.size());
         return new InMemoryClientRegistrationRepository(regs);
     }
 
