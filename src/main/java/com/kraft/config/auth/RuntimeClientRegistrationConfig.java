@@ -1,7 +1,6 @@
 package com.kraft.config.auth;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -19,7 +18,6 @@ public class RuntimeClientRegistrationConfig {
 
     @Bean
     @ConditionalOnMissingBean(ClientRegistrationRepository.class)
-    @ConditionalOnExpression("'${GOOGLE_CLIENT_ID:}' != '' or '${NAVER_CLIENT_ID:}' != ''")
     public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> regs = new ArrayList<>();
 
