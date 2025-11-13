@@ -1,9 +1,9 @@
-
 services:
   # MariaDB Database (설정: secret/mariadb.json)
   mariadb:
     image: mariadb:10.11
     container_name: kraft-mariadb
+    env_file: .env
     environment:
       - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root}
       - MARIADB_DATABASE=${DB_NAME:-kraft_db}
@@ -34,6 +34,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: kraft-redis
+    env_file: .env
     command: redis-server --appendonly yes
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -53,6 +54,7 @@ services:
   minio:
     image: minio/minio:latest
     container_name: kraft-minio
+    env_file: .env
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER:-kraft_minio}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-change-me-minio}
@@ -79,6 +81,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: kraft-app
+    env_file: .env
     environment:
       # Spring Profiles
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev,oauth}
@@ -144,4 +147,3 @@ volumes:
   minio_data:
     driver: local
     name: kraft_minio_data
-

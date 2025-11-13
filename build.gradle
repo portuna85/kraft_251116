@@ -51,6 +51,8 @@ dependencies {
     // Test Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    // Byte Buddy agent to be used as javaagent for tests to avoid Mockito self-attach warning
+    testRuntimeOnly 'net.bytebuddy:byte-buddy-agent:1.17.8'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -62,6 +64,18 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
+    doFirst {
+        try {
+            def agentArtifact = configurations.testRuntimeClasspath.resolvedConfiguration.resolvedArtifacts.find { it.name.contains('byte-buddy-agent') }
+            if (agentArtifact != null) {
+                def agentPath = agentArtifact.file.absolutePath
+                jvmArgs "-javaagent:${agentPath}"
+                logger.lifecycle("Added javaagent for tests: ${agentPath}")
+            }
+        } catch (Exception e) {
+            logger.lifecycle("Could not attach byte-buddy agent for tests: ${e.message}")
+        }
+    }
 }
 
 // .env 파일에서 환경변수 로드

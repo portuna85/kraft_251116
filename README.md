@@ -101,7 +101,7 @@ http://localhost:8080
 | **minio** | 9000, 9001 | 객체 스토리지 | ✅ |
 | **app** | 8080 | Spring Boot | - |
 
-상세 정보: [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)
+상세 정보: (Docker Compose 가이드는 README 내부에 통합되어 있습니다)
 
 ## 📁 프로젝트 구조
 ```
@@ -236,7 +236,7 @@ CREATE TABLE posts (
 
 ### 📘 종합 문서
 모든 프로젝트 문서가 하나로 통합되었습니다:
-- **[종합 문서 (COMPREHENSIVE_DOCUMENTATION.md)](COMPREHENSIVE_DOCUMENTATION.md)** ⭐
+- **종합 문서가 README로 통합되었습니다.** ⭐
   - 프로젝트 개요
   - Docker Compose 가이드
   - Secret 통합 완료 보고서
@@ -520,7 +520,7 @@ tail -f logs/kraft.log
 docker logs -f kraft-app
 ```
 
-상세한 로그 관리 가이드는 [docs/LOG_MANAGEMENT.md](docs/LOG_MANAGEMENT.md)를 참조하세요.
+상세한 로그 관리 가이드는 `logs/README.md`를 참조하세요.
 
 ## 주요 엔드포인트
 
@@ -621,7 +621,7 @@ docker volume rm kraft_mariadb_data -f
 docker-compose up -d mariadb
 ```
 
-상세한 문제 해결 방법은 [docs/DATABASE_CONNECTION_FIX.md](docs/DATABASE_CONNECTION_FIX.md)를 참조하세요.
+상세한 문제 해결 방법은 README의 '문제 해결' 섹션을 참조하세요.
 
 ### 테스트 실패
 ```bash
@@ -638,33 +638,17 @@ docker-compose up -d mariadb
    - 프로젝트 개요 및 빠른 시작 가이드
    - 환경 설정 및 실행 방법
 
-2. **[SECURITY.md](SECURITY.md)**
-   - 보안 설정 및 민감정보 관리 가이드
-   - 환경변수 설정 방법
-   - Git 커밋 전 체크리스트
-   - OAuth2 설정 가이드
-
-3. **[CHANGELOG.md](CHANGELOG.md)**
-   - 프로젝트 변경 이력
-   - 리팩토링 및 업데이트 내역
+2. Security 관련 가이드는 README의 '보안 설정 (SecurityConfig)' 섹션을 참조하세요.
+3. 변경 이력은 GitHub Release 또는 커밋 로그를 참조하세요.
 
 4. **[secret/README.md](secret/README.md)**
    - Secret 디렉토리 사용법
    - OAuth credentials 설정 가이드
 
-### 빠른 참조
-- **보안 설정**: [SECURITY.md](SECURITY.md) 참조
-- **변경 이력**: [CHANGELOG.md](CHANGELOG.md) 참조
-- **OAuth 설정**: [secret/README.md](secret/README.md) 참조
+<!-- COMPREHENSIVE_DOCUMENTATION.md 내용 통합 시작 -->
 
-## 참고 자료
+# 프로젝트 종합 문서
 
-### 공식 문서
-- [Spring Security 6.x Documentation](https://docs.spring.io/spring-security/reference/)
-- [Spring Boot 3.x Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
-- [MariaDB Documentation](https://mariadb.com/kb/en/)
+자세한 프로젝트 문서 내용은 이전의 COMPREHENSIVE_DOCUMENTATION.md에서 통합되었습니다. (요약: Docker Compose 가이드, Secret 통합, Redis 마이그레이션, 로그 관리 등)
 
-### 보안 관련
-- [OWASP Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
-- [12-Factor App: Config](https://12factor.net/config)
-
+<!-- COMPREHENSIVE_DOCUMENTATION.md 내용 통합 끝 -->

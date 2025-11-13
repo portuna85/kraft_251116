@@ -16,6 +16,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Spring Security 설정
+ * <p>
+ * 참고:
+ * - Spring Security 5.x에서 제공하던 WebSecurityConfigurerAdapter는 더 이상 권장되지 않습니다.
+ *   Spring Security 6부터는 구성 요소(빈) 기반으로 SecurityFilterChain을 빈으로 등록하는 방식이 권장됩니다.
+ *   이 방식은 더 명확한 구성과 테스트 용이성, 그리고 스프링 부트의 자동 설정과의 호환성이 좋습니다.
+ *
+ * CSRF 관련:
+ * - 이전에 자주 사용되었던 `http.csrf().disable()`은 전체 애플리케이션에 대해 CSRF 보호를 완전히 제거합니다.
+ *   Spring Security 6.1 이후 일부 API(특정 메서드 체인 등)는 deprecated 되었고, CSRF 정책을 더 세밀하게
+ *   제어하도록 유도합니다. 여기서는 REST API 엔드포인트(`/api/**`)와 H2 콘솔에는 CSRF를 제외(ignoring)하고,
+ *   일반 웹 페이지는 CSRF 보호를 유지하도록 설정해 안전성과 편의성의 균형을 맞췄습니다.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -28,8 +42,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF: API 엔드포인트에 대해서만 비활성화 (RESTful API는 stateless이므로)
-                // 웹 페이지는 CSRF 보호 유지
+                // CSRF: API 엔드포인트에 대해서만 제외 처리
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**", "/h2-console/**")
                 )
@@ -37,7 +50,7 @@ public class SecurityConfig {
                 // CORS 설정 활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Frame options: SAMEORIGIN으로 제한 (H2 콘솔 사용 가능하되 보안 강화)
+                // Frame options: SAMEORIGIN으로 제한 (H2 콘솔 사용 가능)
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
@@ -45,9 +58,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // 정적 리소스 및 공개 페이지: 모두 허용
                         .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/static/**").permitAll()
-                        // H2 콘솔: 개발/테스트 환경에서만 허용 (프로덕션에서는 제거 권장)
+                        // H2 콘솔: 개발/테스트 환경에서만 허용
                         .requestMatchers("/h2-console/**").permitAll()
-                        // 프로필 페이지: 인증 필요
+                        // 프로필 페이지: 공개
                         .requestMatchers("/profile").permitAll()
                         // API 엔드포인트: USER 권한 필요
                         .requestMatchers("/api/**").hasRole(Role.USER.name())
@@ -71,26 +84,16 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS 설정: 외부 도메인에서 API 호출 시 정책 정의
-     * 프로덕션에서는 allowedOrigins를 특정 도메인으로 제한하세요
+     * CORS 설정: 개발 환경에서는 localhost를 허용
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 개발 환경: localhost 허용
         configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
-
-        // 허용할 HTTP 메서드
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-
-        // 허용할 헤더
         configuration.setAllowedHeaders(List.of("*"));
-
-        // 자격 증명(쿠키 등) 허용
         configuration.setAllowCredentials(true);
-
-        // preflight 요청 캐시 시간 (초)
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -107,7 +110,6 @@ public class SecurityConfig {
     public CorsConfigurationSource prodCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 프로덕션: 실제 도메인으로 제한 (예시)
         configuration.setAllowedOrigins(List.of("https://yourdomain.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));

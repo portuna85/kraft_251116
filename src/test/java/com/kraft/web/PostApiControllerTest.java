@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kraft.config.TestSecurityConfig;
 import com.kraft.domain.post.Post;
 import com.kraft.domain.post.PostRepository;
+import com.kraft.domain.user.UserRepository;
 import com.kraft.web.dto.PostSaveRequestDto;
 import com.kraft.web.dto.PostUpdateRequestDto;
 import org.junit.jupiter.api.AfterEach;
@@ -50,6 +51,9 @@ class PostApiControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private UserRepository userRepository;
+
 
     private MockMvc mvc;
 
@@ -81,10 +85,21 @@ class PostApiControllerTest {
                 .author(author)
                 .build();
 
+        // 세션에 로그인 사용자 추가
+        com.kraft.domain.user.User savedUser = userRepository.save(com.kraft.domain.user.User.builder()
+                .name("테스트유저")
+                .email("testuser@example.com")
+                .picture(null)
+                .role(com.kraft.domain.user.Role.USER)
+                .build());
+
+        com.kraft.config.auth.dto.SessionUser sessionUser = new com.kraft.config.auth.dto.SessionUser(savedUser);
+
         String url = "/api/post";
 
         // when & then
         mvc.perform(post(url)
+                        .sessionAttr("user", sessionUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
@@ -94,9 +109,11 @@ class PostApiControllerTest {
         // verify
         List<Post> all = postRepository.findAll();
         assertThat(all).hasSize(1);
-        assertThat(all.get(0).getTitle()).isEqualTo(title);
-        assertThat(all.get(0).getContent()).isEqualTo(content);
-        assertThat(all.get(0).getAuthor()).isEqualTo(author);
+        assertThat(all).first().satisfies(p -> {
+            assertThat(p.getTitle()).isEqualTo(title);
+            assertThat(p.getContent()).isEqualTo(content);
+            assertThat(p.getAuthor()).isEqualTo(author);
+        });
     }
 
     @Test
@@ -132,8 +149,10 @@ class PostApiControllerTest {
         // verify
         List<Post> all = postRepository.findAll();
         assertThat(all).hasSize(1);
-        assertThat(all.get(0).getTitle()).isEqualTo(expectedTitle);
-        assertThat(all.get(0).getContent()).isEqualTo(expectedContent);
+        assertThat(all).first().satisfies(p -> {
+            assertThat(p.getTitle()).isEqualTo(expectedTitle);
+            assertThat(p.getContent()).isEqualTo(expectedContent);
+        });
     }
 
     @Test
