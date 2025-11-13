@@ -36,10 +36,11 @@ dependencies {
 
     // Database
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    // Flyway for DB migrations - Spring Boot manages compatible versions
+    implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
 
-    // Flyway for DB migrations (최신 버전으로 업그레이드 - MariaDB 10.11 지원)
-    implementation 'org.flywaydb:flyway-core:10.21.0'
 
     // Test Database
     testRuntimeOnly 'com.h2database:h2'

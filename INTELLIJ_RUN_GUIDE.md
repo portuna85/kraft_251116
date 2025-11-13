@@ -72,6 +72,18 @@ Started Application in X.XXX seconds
 
 ## 문제 해결
 
+### Flyway 버전 충돌 오류
+증상: 
+```
+An attempt was made to call a method that does not exist.
+org.flywaydb.database.mysql.mariadb.MariaDBDatabaseType.handlesJDBCUrl
+'boolean org.flywaydb.core.internal.util.UrlUtils.isSecretManagerUrl(java.lang.String, java.lang.String)'
+```
+
+원인: `flyway-core`와 `flyway-mysql` 버전 불일치
+
+해결: ✅ **이미 해결됨** - `build.gradle`에서 명시적 버전 지정 제거, Spring Boot dependency management가 호환 버전 관리
+
 ### MariaDB 연결 실패 (Access denied)
 증상: `Access denied for user 'kraft_user'@'localhost'`
 
