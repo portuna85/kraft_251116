@@ -23,7 +23,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate  # Flyway가 스키마를 관리하므로 validate로 변경
+      ddl-auto: update   # 개발 환경에서는 누락 테이블 문제를 자동으로 보완하기 위해 update 사용
     properties:
       hibernate:
         format_sql: true
