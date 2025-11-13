@@ -3,6 +3,7 @@ package com.kraft.config.auth;
 import com.kraft.domain.user.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -34,10 +35,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-@Profile("oauth")
+@Profile("!test")  // 테스트 환경을 제외한 모든 프로파일에서 활성화 (dev, prod, oauth 등)
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
+    private final ObjectProvider<CustomOAuth2UserService> customOAuth2UserServiceProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,8 +63,14 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // 프로필 페이지: 공개
                         .requestMatchers("/profile").permitAll()
-                        // API 엔드포인트: USER 권한 필요
-                        .requestMatchers("/api/**").hasRole(Role.USER.name())
+                        // 로그인 페이지: 공개
+                        .requestMatchers("/login").permitAll()
+                        // 게시글 조회 API: 공개 (목록, 상세)
+                        .requestMatchers("/api/post", "/api/post/*", "/api/post/list").permitAll()
+                        // 게시글 작성/수정/삭제 API: USER 권한 필요
+                        .requestMatchers("/api/post").hasRole(Role.USER.name())
+                        // 게시글 작성/수정 페이지: 인증 필요
+                        .requestMatchers("/posts/save", "/posts/update/**").authenticated()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
@@ -72,13 +79,26 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
-                )
-
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
                 );
+
+        // OAuth2 로그인 설정 (CustomOAuth2UserService가 있을 때만)
+        CustomOAuth2UserService oauthService = customOAuth2UserServiceProvider.getIfAvailable();
+        if (oauthService != null) {
+            http.oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(oauthService)
+                    )
+            );
+            log.info("OAuth2 로그인 활성화됨");
+        } else {
+            // OAuth2가 설정되지 않은 경우 기본 폼 로그인 사용
+            http.formLogin(form -> form
+                    .loginPage("/login")
+                    .permitAll()
+                    .defaultSuccessUrl("/", true)
+            );
+            log.info("OAuth2 미사용, 폼 로그인 활성화됨");
+        }
 
         return http.build();
     }
