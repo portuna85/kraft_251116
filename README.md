@@ -62,6 +62,13 @@ docker compose up -d mariadb redis
 2. **IntelliJ Run Configuration 설정**:
    - `Run` → `Edit Configurations...` → `Application`
    - Environment variables: `SPRING_PROFILES_ACTIVE=dev`
+   
+   **OAuth 로그인 사용하려면**:
+   - Environment variables에 추가:
+     ```
+     GOOGLE_CLIENT_ID=your-client-id;GOOGLE_CLIENT_SECRET=your-secret;NAVER_CLIENT_ID=your-client-id;NAVER_CLIENT_SECRET=your-secret
+     ```
+   - 또는 EnvFile 플러그인 설치 후 `.env` 파일 로드
 
 3. **실행**: `Run 'Application'` (Shift + F10)
 

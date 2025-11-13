@@ -27,6 +27,10 @@ public class RuntimeClientRegistrationConfig {
 
         String gId = System.getenv("GOOGLE_CLIENT_ID");
         String gSecret = System.getenv("GOOGLE_CLIENT_SECRET");
+
+        log.debug("GOOGLE_CLIENT_ID from env: {}", gId != null && !gId.isBlank() ? "***SET***" : "NOT SET");
+        log.debug("GOOGLE_CLIENT_SECRET from env: {}", gSecret != null && !gSecret.isBlank() ? "***SET***" : "NOT SET");
+
         if (gId != null && !gId.isBlank() && gSecret != null && !gSecret.isBlank()) {
             regs.add(googleRegistration(gId, gSecret));
             log.info("Google OAuth2 client registered");
@@ -36,6 +40,10 @@ public class RuntimeClientRegistrationConfig {
 
         String nId = System.getenv("NAVER_CLIENT_ID");
         String nSecret = System.getenv("NAVER_CLIENT_SECRET");
+
+        log.debug("NAVER_CLIENT_ID from env: {}", nId != null && !nId.isBlank() ? "***SET***" : "NOT SET");
+        log.debug("NAVER_CLIENT_SECRET from env: {}", nSecret != null && !nSecret.isBlank() ? "***SET***" : "NOT SET");
+
         if (nId != null && !nId.isBlank() && nSecret != null && !nSecret.isBlank()) {
             regs.add(naverRegistration(nId, nSecret));
             log.info("Naver OAuth2 client registered");
@@ -45,6 +53,10 @@ public class RuntimeClientRegistrationConfig {
 
         if (regs.isEmpty()) {
             log.warn("No OAuth2 clients registered. Using NoopClientRegistrationRepository. OAuth login will not work.");
+            log.warn("To enable OAuth login:");
+            log.warn("  1. Set environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET");
+            log.warn("  2. OR use IntelliJ EnvFile plugin to load .env file");
+            log.warn("  3. OR add them to Run Configuration -> Environment variables");
             return new NoopClientRegistrationRepository();
         }
 
