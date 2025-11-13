@@ -50,6 +50,25 @@ Spring Boot 3.5.7 기반 웹 애플리케이션 with OAuth2, JPA, Docker
 
 ## ⚡ 빠른 시작
 
+### IntelliJ에서 실행 (권장)
+
+1. **Docker 컨테이너 시작**:
+```powershell
+docker compose up -d mariadb redis
+```
+
+2. **IntelliJ Run Configuration 설정**:
+   - `Run` → `Edit Configurations...` → `Application`
+   - Environment variables: `SPRING_PROFILES_ACTIVE=dev`
+
+3. **실행**: `Run 'Application'` (Shift + F10)
+
+4. **접속**: `http://localhost:8080`
+
+📖 **상세 가이드**: [INTELLIJ_RUN_GUIDE.md](INTELLIJ_RUN_GUIDE.md)
+
+### Docker Compose로 전체 실행
+
 ### 1. 저장소 클론
 ```bash
 git clone <repository-url>
