@@ -50,7 +50,9 @@ Spring Boot 3.5.7 기반 웹 애플리케이션 with OAuth2, JPA, Docker
 
 ## ⚡ 빠른 시작
 
-### IntelliJ에서 실행 (권장)
+### IntelliJ에서 실행 (권장) ⭐
+
+**OAuth 없이 바로 실행 가능!** 홈 페이지와 게시글 조회는 로그인 불필요합니다.
 
 1. **Docker 컨테이너 시작**:
 ```powershell
@@ -64,8 +66,12 @@ docker compose up -d mariadb redis
 3. **실행**: `Run 'Application'` (Shift + F10)
 
 4. **접속**: `http://localhost:8080`
+   - ✅ 홈 페이지 바로 표시 (로그인 불필요)
+   - ✅ 게시글 목록/상세 조회 가능
+   - ✅ "글쓰기" 클릭 시에만 로그인 필요
 
 📖 **상세 가이드**: [INTELLIJ_RUN_GUIDE.md](INTELLIJ_RUN_GUIDE.md)
+📖 **로그인 리다이렉트 문제 해결**: [LOGIN_REDIRECT_FIX.md](LOGIN_REDIRECT_FIX.md)
 
 ### Docker Compose로 전체 실행
 
