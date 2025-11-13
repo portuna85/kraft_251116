@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: kraft
+  profiles:
+    # 환경변수 SPRING_PROFILES_ACTIVE로 덮어쓸 수 있습니다
+    active: ${SPRING_PROFILES_ACTIVE:dev,oauth}
+
+  jpa:
+    show-sql: true
+    open-in-view: false  # OSIV 비활성화 (성능 최적화)
+
+  # Spring Session 설정
+  session:
+    store-type: jdbc
+    timeout: 1800s  # 30분
+    jdbc:
+      # 자동 스키마 초기화는 개발/운영 환경에서 중복 생성 및 권한/타이밍 이슈로 문제를 일으킬 수 있습니다.
+      # 안전하게 비활성화하고 Flyway/Liquibase 같은 마이그레이션 도구로 관리하세요.
+      initialize-schema: never
+      cleanup-cron: "0 0 * * * *"  # 매 시간 만료된 세션 정리

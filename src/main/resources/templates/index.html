@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kraft - 게시판</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">Kraft 게시판</h1>
+                <div class="user-area">
+                    <span th:if="${userName}" class="user-name" th:text="${userName}">사용자</span>
+                    <span th:if="${userName != null and userPicture != null}" class="user-picture">
+                        <img th:src="${userPicture}" alt="profile" class="profile-img">
+                    </span>
+                    <div class="auth-buttons">
+                        <a th:if="${userName == null}" href="/oauth2/authorization/google" class="btn btn-google">
+                            <span class="btn-icon">G</span> Google 로그인
+                        </a>
+                        <a th:if="${userName == null}" href="/oauth2/authorization/naver" class="btn btn-naver">
+                            <span class="btn-icon">N</span> Naver 로그인
+                        </a>
+                        <a th:if="${userName}" href="/logout" class="btn btn-logout">로그아웃</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <h2>게시글 목록</h2>
+                <button th:if="${userName}" class="btn btn-primary" onclick="location.href='/posts/save'">
+                    글쓰기
+                </button>
+            </div>
+
+            <!-- Posts List -->
+            <div class="posts-container">
+                <div th:if="${#lists.isEmpty(posts)}" class="empty-state">
+                    <p>등록된 게시글이 없습니다.</p>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(posts)}" class="posts-grid">
+                    <div th:each="post : ${posts}" class="post-card">
+                        <div class="post-header">
+                            <h3 class="post-title" th:text="${post.title}">제목</h3>
+                            <span class="post-date" th:text="${#temporals.format(post.modifiedDate, 'yyyy-MM-dd HH:mm')}">날짜</span>
+                        </div>
+                        <div class="post-author">
+                            작성자: <span th:text="${post.author}">작성자</span>
+                        </div>
+                        <div class="post-actions">
+                            <button class="btn btn-sm btn-view" th:onclick="|viewPost(${post.id})|">
+                                상세보기
+                            </button>
+                            <button th:if="${userName}" class="btn btn-sm btn-edit"
+                                    th:onclick="|location.href='/posts/update/${post.id}'|">
+                                수정
+                            </button>
+                            <button th:if="${userName}" class="btn btn-sm btn-delete"
+                                    th:onclick="|deletePost(${post.id})|">
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Kraft. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Modal for Post Detail -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">게시글 제목</h2>
+            <div class="modal-meta">
+                <span id="modalAuthor">작성자</span>
+                <span id="modalDate">날짜</span>
+            </div>
+            <div id="modalContent" class="modal-body">
+                게시글 내용
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
+

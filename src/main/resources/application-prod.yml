@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: kraft
+  datasource:
+    url: jdbc:mariadb://localhost:3306/kraft_db?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Seoul
+    username: kraft_user
+    # 우선순위: SPRING_DATASOURCE_PASSWORD -> DB_PASSWORD -> 기본값
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:Gkstmvns1!}}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 프로덕션에서는 validate 또는 none 사용
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MariaDBDialect
+    show-sql: false
+
+# 프로덕션에서는 H2 콘솔 비활성화
+spring.h2.console.enabled: false
+
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.kraft: INFO
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  file:
+    name: logs/kraft.log
+    max-size: 10MB
+    max-history: 30
