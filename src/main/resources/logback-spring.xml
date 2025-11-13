@@ -149,6 +149,8 @@
     <springProfile name="dev">
         <logger name="com.kraft" level="DEBUG"/>
         <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.flywaydb" level="INFO"/>
+        <logger name="com.kraft.config.FlywayDevInitializer" level="INFO"/>
     </springProfile>
 
     <!-- 프로덕션 환경용 프로파일 -->

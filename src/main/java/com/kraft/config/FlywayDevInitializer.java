@@ -34,33 +34,41 @@ public class FlywayDevInitializer {
                 .dataSource(dataSource)
                 .locations(locations.split(","))
                 .baselineOnMigrate(baselineOnMigrate)
+                .outOfOrder(false)
                 .load();
 
         try {
             flyway.migrate();
-            log.info("Flyway migration completed successfully (dev initializer).");
+            log.info("Flyway migration completed successfully.");
         } catch (Exception ex) {
             String errorMessage = ex.getMessage();
-            log.warn("Flyway migrate failed: {}", errorMessage);
 
-            // Check if baseline is already present
-            if (errorMessage != null && errorMessage.contains("already contains migrations")) {
-                log.info("Flyway schema history already exists. Skipping baseline. Use 'flyway repair' if needed.");
+            // Validation failed - migration exists in code but not in DB history
+            if (errorMessage != null && errorMessage.contains("Validate failed")) {
+                log.info("Flyway detected schema/history mismatch. Attempting repair + migrate...");
+                try {
+                    flyway.repair();
+                    flyway.migrate();
+                    log.info("Flyway repair + migrate succeeded.");
+                } catch (Exception repairEx) {
+                    log.warn("Flyway repair failed. Schema and history may be out of sync. Manual intervention may be required.");
+                }
                 return;
             }
 
-            // Try baseline only if schema history doesn't exist or is empty
+            // Baseline already exists with migrations
+            if (errorMessage != null && errorMessage.contains("already contains migrations")) {
+                log.info("Flyway schema history already exists. Skipping baseline.");
+                return;
+            }
+
+            // Unknown error - try baseline as fallback
             try {
                 flyway.baseline();
                 flyway.migrate();
-                log.info("Flyway baseline + migrate succeeded (dev initializer).");
+                log.info("Flyway baseline + migrate succeeded.");
             } catch (Exception ex2) {
-                String baselineError = ex2.getMessage();
-                if (baselineError != null && baselineError.contains("already contains migrations")) {
-                    log.info("Flyway schema history already contains migrations. Application will continue.");
-                } else {
-                    log.error("Flyway baseline/migrate failed in dev initializer: {}", baselineError);
-                }
+                log.error("Flyway migration failed: {}", ex2.getMessage());
             }
         }
     }
