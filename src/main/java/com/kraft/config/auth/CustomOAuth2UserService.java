@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -38,19 +37,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     /**
      * HttpSession은 request-scoped 빈이므로 ObjectProvider를 통해 지연 주입
-     *
-     * ObjectProvider 패턴의 장점:
-     * 1. Request Scope 안전성: request scope 빈을 singleton 빈에서 안전하게 사용
-     * 2. 지연 로딩: 실제 사용 시점에 빈을 가져와 scope 문제 해결
-     * 3. 테스트 용이성: Mock 주입이 쉬움
-     * 4. 순환 참조 방지: 의존성 주입 시점을 늦춰 순환 참조 문제 회피
-     *
-     * 생성자 주입의 장점:
-     * 1. 불변성(Immutability): final 키워드로 변경 불가능한 의존성 보장
-     * 2. 테스트 용이성: Mock 객체 주입이 간단 (리플렉션 불필요)
-     * 3. 순환 참조 감지: 컴파일 타임에 순환 참조 발견 가능
-     * 4. 명시성: 클래스의 의존성이 생성자 시그니처로 명확히 드러남
-     * 5. DI 컨테이너 독립성: Spring 없이도 객체 생성 가능 (POJO 원칙)
      */
     private final ObjectProvider<HttpSession> httpSessionProvider;
 
@@ -75,7 +61,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // ObjectProvider를 통해 현재 요청의 HttpSession 획득
         HttpSession httpSession = httpSessionProvider.getObject();
-        httpSession.setAttribute("user", new SessionUser(user));
+        if (httpSession != null) {
+            httpSession.setAttribute("user", new SessionUser(user));
+        }
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(user.getRoleKey())),

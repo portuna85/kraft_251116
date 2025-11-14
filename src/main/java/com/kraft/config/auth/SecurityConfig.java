@@ -12,83 +12,89 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Spring Security 설정
- * <p>
- * 참고:
- * - Spring Security 5.x에서 제공하던 WebSecurityConfigurerAdapter는 더 이상 권장되지 않습니다.
- *   Spring Security 6부터는 구성 요소(빈) 기반으로 SecurityFilterChain을 빈으로 등록하는 방식이 권장됩니다.
- *   이 방식은 더 명확한 구성과 테스트 용이성, 그리고 스프링 부트의 자동 설정과의 호환성이 좋습니다.
  *
- * CSRF 관련:
- * - 이전에 자주 사용되었던 `http.csrf().disable()`은 전체 애플리케이션에 대해 CSRF 보호를 완전히 제거합니다.
- *   Spring Security 6.1 이후 일부 API(특정 메서드 체인 등)는 deprecated 되었고, CSRF 정책을 더 세밀하게
- *   제어하도록 유도합니다. 여기서는 REST API 엔드포인트(`/api/**`)와 H2 콘솔에는 CSRF를 제외(ignoring)하고,
- *   일반 웹 페이지는 CSRF 보호를 유지하도록 설정해 안전성과 편의성의 균형을 맞췄습니다.
+ * OAuth2 로그인 활성화 시 실제로 등록된 ClientRegistration이 있는지 안전하게 검사하도록 개선했습니다.
  */
 @Slf4j
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-@Profile("!test")  // 테스트 환경을 제외한 모든 프로파일에서 활성화 (dev, prod, oauth 등)
+@Profile("!test")
 public class SecurityConfig {
 
     private final ObjectProvider<CustomOAuth2UserService> customOAuth2UserServiceProvider;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF: API 엔드포인트에 대해서만 제외 처리
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**", "/h2-console/**")
                 )
-
-                // CORS 설정 활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Frame options: SAMEORIGIN으로 제한 (H2 콘솔 사용 가능)
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
-
                 .authorizeHttpRequests(authorize -> authorize
-                        // 정적 리소스 및 공개 페이지: 모두 허용
                         .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/static/**").permitAll()
-                        // H2 콘솔: 개발/테스트 환경에서만 허용
                         .requestMatchers("/h2-console/**").permitAll()
-                        // 프로필 페이지: 공개
                         .requestMatchers("/profile").permitAll()
-                        // OAuth2 로그인 콜백 URL: 공개
-                        .requestMatchers("/login/oauth2/code/*", "/oauth2/**").permitAll()
-                        // 에러 페이지: 공개
+                        .requestMatchers("/login/oauth2/code/*", "/oauth2/**", "/oauth2/authorization/*").permitAll()
                         .requestMatchers("/error").permitAll()
-                        // 게시글 조회 API: 공개 (GET 메서드)
                         .requestMatchers(HttpMethod.GET, "/api/post", "/api/post/*", "/api/post/list").permitAll()
-                        // 게시글 작성/수정/삭제 API: USER 권한 필요 (POST, PUT, DELETE)
                         .requestMatchers(HttpMethod.POST, "/api/post").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.PUT, "/api/post/*").hasRole(Role.USER.name())
                         .requestMatchers(HttpMethod.DELETE, "/api/post/*").hasRole(Role.USER.name())
-                        // 게시글 작성/수정 페이지: 인증 필요
                         .requestMatchers("/posts/save", "/posts/update/**").authenticated()
-                        // 나머지 요청은 허용 (리디렉션 루프 방지)
                         .anyRequest().permitAll()
                 )
-
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                 );
 
-        // OAuth2 로그인 설정 (CustomOAuth2UserService가 있을 때만)
+        // OAuth2 로그인 설정: CustomOAuth2UserService 존재 + ClientRegistrationRepository에 실제 등록된 클라이언트가 있을 때만 활성화
         CustomOAuth2UserService oauthService = customOAuth2UserServiceProvider.getIfAvailable();
-        if (oauthService != null) {
+        ClientRegistrationRepository clientRegRepo = clientRegistrationRepositoryProvider.getIfAvailable();
+
+        boolean hasClientRegistrations = false;
+        if (clientRegRepo != null) {
+            // 1) Iterable 지원 구현체 (InMemoryClientRegistrationRepository 등)
+            if (clientRegRepo instanceof Iterable<?>) {
+                try {
+                    Iterator<?> it = ((Iterable<?>) clientRegRepo).iterator();
+                    hasClientRegistrations = it != null && it.hasNext();
+                } catch (Exception ex) {
+                    log.debug("Error iterating ClientRegistrationRepository: {}", ex.getMessage());
+                }
+            }
+
+            // 2) Iterable이 아니면, 잘 알려진 registrationId를 직접 조회해보는 폴백
+            if (!hasClientRegistrations) {
+                try {
+                    // 안전하게 google/naver 같은 등록 아이디가 존재하는지 확인
+                    ClientRegistration g = clientRegRepo.findByRegistrationId("google");
+                    ClientRegistration n = clientRegRepo.findByRegistrationId("naver");
+                    hasClientRegistrations = (g != null) || (n != null);
+                } catch (Exception ex) {
+                    log.debug("ClientRegistrationRepository.findByRegistrationId check failed: {}", ex.getMessage());
+                }
+            }
+        }
+
+        if (oauthService != null && hasClientRegistrations) {
             http.oauth2Login(oauth2 -> oauth2
                     .userInfoEndpoint(userInfo -> userInfo
                             .userService(oauthService)
@@ -96,23 +102,23 @@ public class SecurityConfig {
                     .defaultSuccessUrl("/", true)
                     .failureUrl("/?error=oauth")
             );
-            log.info("OAuth2 로그인 활성화됨");
+            log.info("OAuth2 로그인 활성화됨 (등록된 클라이언트 존재)");
         } else {
-            // OAuth2가 설정되지 않은 경우 기본 폼 로그인 사용 (Spring Security 기본 로그인 페이지)
             http.formLogin(form -> form
                     .defaultSuccessUrl("/", true)
                     .failureUrl("/?error=login")
                     .permitAll()
             );
-            log.info("OAuth2 미사용, 폼 로그인 활성화됨");
+            if (oauthService == null) {
+                log.info("CustomOAuth2UserService bean 없음. 폼 로그인 활성화됨");
+            } else {
+                log.info("OAuth 클라이언트가 등록되지 않음. 폼 로그인 활성화됨");
+            }
         }
 
         return http.build();
     }
 
-    /**
-     * CORS 설정: 개발 환경에서는 localhost를 허용
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -129,9 +135,6 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * 프로덕션 환경용 CORS 설정: 더 엄격한 정책
-     */
     @Bean
     @Profile("prod")
     public CorsConfigurationSource prodCorsConfigurationSource() {

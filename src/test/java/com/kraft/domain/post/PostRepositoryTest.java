@@ -141,47 +141,37 @@ class PostRepositoryTest {
         LocalDateTime after = LocalDateTime.now().plusSeconds(5);
 
         // then
-        assertThat(post.getCreateAt()).isNotNull();
+        assertThat(post.getCreatedAt()).isNotNull();
         assertThat(post.getModifiedAt()).isNotNull();
-        assertThat(post.getCreateAt()).isBetween(before, after);
+        assertThat(post.getCreatedAt()).isBetween(before, after);
         assertThat(post.getModifiedAt()).isBetween(before, after);
-        assertThat(post.getCreateAt()).isBeforeOrEqualTo(post.getModifiedAt());
+        assertThat(post.getCreatedAt()).isBeforeOrEqualTo(post.getModifiedAt());
     }
 
     @Test
     @DisplayName("제목 없이 저장 시 예외 발생")
     void saveWithoutTitleThrowsException() {
-        // given
-        Post invalidPost = Post.builder()
-                .title(null)
-                .content("본문")
-                .author("작성자")
-                .build();
-
-        // when & then
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            postRepository.saveAndFlush(invalidPost);
+        // given & when & then
+        assertThrows(IllegalArgumentException.class, () -> {
+            Post.builder()
+                    .title(null)
+                    .content("본문")
+                    .author("작성자")
+                    .build();
         });
-
-        em.clear();
     }
 
     @Test
     @DisplayName("본문 없이 저장 시 예외 발생")
     void saveWithoutContentThrowsException() {
-        // given
-        Post invalidPost = Post.builder()
-                .title("제목")
-                .content(null)
-                .author("작성자")
-                .build();
-
-        // when & then
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            postRepository.saveAndFlush(invalidPost);
+        // given & when & then
+        assertThrows(IllegalArgumentException.class, () -> {
+            Post.builder()
+                    .title("제목")
+                    .content(null)
+                    .author("작성자")
+                    .build();
         });
-
-        em.clear();
     }
 
     @Test

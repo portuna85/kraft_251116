@@ -18,10 +18,11 @@
                         <img th:src="${userPicture}" alt="profile" class="profile-img">
                     </span>
                     <div class="auth-buttons">
-                        <a th:if="${userName == null}" href="/oauth2/authorization/google" class="btn btn-google">
+                        <!-- OAuth2가 활성화된 경우에만 소셜 로그인 버튼 표시 -->
+                        <a th:if="${userName == null and oauthEnabled}" href="/oauth2/authorization/google" class="btn btn-google">
                             <span class="btn-icon">G</span> Google 로그인
                         </a>
-                        <a th:if="${userName == null}" href="/oauth2/authorization/naver" class="btn btn-naver">
+                        <a th:if="${userName == null and oauthEnabled}" href="/oauth2/authorization/naver" class="btn btn-naver">
                             <span class="btn-icon">N</span> Naver 로그인
                         </a>
                         <a th:if="${userName}" href="/logout" class="btn btn-logout">로그아웃</a>
