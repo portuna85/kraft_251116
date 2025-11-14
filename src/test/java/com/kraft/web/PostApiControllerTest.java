@@ -95,7 +95,7 @@ class PostApiControllerTest {
 
         com.kraft.config.auth.dto.SessionUser sessionUser = new com.kraft.config.auth.dto.SessionUser(savedUser);
 
-        String url = "/api/post";
+        String url = "/api/posts";
 
         // when & then
         mvc.perform(post(url)
@@ -103,7 +103,7 @@ class PostApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$").isNumber());
 
         // verify
@@ -136,7 +136,7 @@ class PostApiControllerTest {
                 .content(expectedContent)
                 .build();
 
-        String url = "/api/post/" + updateId;
+        String url = "/api/posts/" + updateId;
 
         // when & then
         mvc.perform(put(url)
@@ -170,7 +170,7 @@ class PostApiControllerTest {
                 .author(author)
                 .build());
 
-        String url = "/api/post/" + savedPost.getId();
+        String url = "/api/posts/" + savedPost.getId();
 
         // when & then
         mvc.perform(get(url))
@@ -194,7 +194,7 @@ class PostApiControllerTest {
                 .build());
 
         Long deleteId = savedPost.getId();
-        String url = "/api/post/" + deleteId;
+        String url = "/api/posts/" + deleteId;
 
         // when & then
         mvc.perform(delete(url))
@@ -224,7 +224,7 @@ class PostApiControllerTest {
                 .author("작성자2")
                 .build());
 
-        String url = "/api/post/list";
+        String url = "/api/posts";
 
         // when & then
         mvc.perform(get(url))
@@ -244,7 +244,7 @@ class PostApiControllerTest {
                 .author("작성자")
                 .build();
 
-        String url = "/api/post";
+        String url = "/api/posts";
 
         // when & then
         mvc.perform(post(url)

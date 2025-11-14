@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco' // 코드 커버리지
+    id 'org.sonarqube' version '5.1.0.4882' // SonarQube 정적 분석
 }
 
 group = 'com.kraft'
@@ -30,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator' // 헬스체크 및 모니터링
 
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.session:spring-session-data-redis'
@@ -94,3 +97,67 @@ tasks.named('bootRun') {
 
 // Note: Flyway Gradle plugin was removed. We keep the runtime dependency 'org.flywaydb:flyway-core'
 // and enable Flyway via Spring Boot auto-configuration (spring.flyway.enabled=true in application-dev.yml).
+
+// Jacoco 설정
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/config/**',
+                '**/dto/**',
+                '**/entity/**',
+                '**/Application.class'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.60 // 60% 커버리지 요구
+            }
+        }
+    }
+}
+
+// SonarQube 설정
+sonar {
+    properties {
+        property "sonar.projectKey", "kraft"
+        property "sonar.projectName", "Kraft"
+        property "sonar.sources", "src/main/java"
+        property "sonar.tests", "src/test/java"
+        property "sonar.java.binaries", "build/classes/java/main"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.exclusions", "**/config/**, **/dto/**, **/entity/**, **/Application.java"
+    }
+}
+
+// Build 시 테스트 커버리지 리포트 생성
+tasks.named('build') {
+    dependsOn jacocoTestReport
+}
+
+// CI 환경을 위한 태스크
+tasks.register('ciTest') {
+    dependsOn 'clean', 'test', 'jacocoTestReport'
+    description = 'CI 환경에서 실행할 테스트 및 커버리지 리포트 생성'
+}
+
+tasks.register('ciBuild') {
+    dependsOn 'clean', 'build', 'jacocoTestReport'
+    description = 'CI 환경에서 실행할 전체 빌드'
+}
+

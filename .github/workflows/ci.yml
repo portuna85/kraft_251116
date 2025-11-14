@@ -1,0 +1,60 @@
+name: CI - Build and Test
+        retention-days: 7
+        path: build/reports/tests/
+        name: test-results
+      with:
+      uses: actions/upload-artifact@v4
+      if: always()
+    - name: Archive test results
+
+        retention-days: 7
+        path: build/libs/*.jar
+        name: kraft-jar
+      with:
+      uses: actions/upload-artifact@v4
+      if: success()
+    - name: Upload build artifacts
+
+        reporter: java-junit
+        path: build/test-results/test/*.xml
+        name: Test Results
+      with:
+      uses: dorny/test-reporter@v1
+      if: always()
+    - name: Generate test report
+
+      run: ./gradlew test
+    - name: Run tests
+
+      run: ./gradlew clean build -x test
+    - name: Build with Gradle
+
+      run: chmod +x gradlew
+    - name: Grant execute permission for gradlew
+
+        cache: 'gradle'
+        distribution: 'temurin'
+        java-version: '25'
+      with:
+      uses: actions/setup-java@v4
+    - name: Set up JDK 25
+
+      uses: actions/checkout@v4
+    - name: Checkout code
+    steps:
+
+    runs-on: ubuntu-latest
+  build:
+jobs:
+
+      - develop
+      - main
+    branches:
+  pull_request:
+      - develop
+      - main
+    branches:
+  push:
+on:
+
+

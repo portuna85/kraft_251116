@@ -10,27 +10,80 @@ spring:
     # OAuth 사용: oauth 프로파일 추가 (예: dev,oauth 또는 prod,oauth)
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  # 웹 리소스 설정
+  web:
+    resources:
+      add-mappings: true  # 정적 리소스 매핑 활성화
+
+  # 데이터소스 공통 설정
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-test-query: SELECT 1
+      pool-name: KraftHikariPool
+
   jpa:
-    show-sql: true
     open-in-view: false  # OSIV 비활성화 (성능 최적화, N+1 문제 방지)
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Seoul
+
+  # SQL 초기화 비활성화 (Flyway 사용)
+  sql:
+    init:
+      mode: never
 
   # Flyway 데이터베이스 마이그레이션
   flyway:
     baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
     locations: classpath:db/migration
     enabled: true
+    clean-disabled: true
 
   # Spring Session 기본 설정 (모든 환경에서 Redis 사용)
   session:
-    store-type: redis
     timeout: 1800s  # 세션 타임아웃: 30분 (프로파일별 오버라이드 가능)
+    redis:
+      namespace: kraft:session
+
+  # Redis 공통 설정
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
 
 server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: native  # 프록시 헤더 처리 (X-Forwarded-* 지원)
-
+  error:
+    whitelabel:
+      enabled: false  # Whitelabel 에러 페이지 비활성화
 
 # 로깅 설정 (logback-spring.xml에서 상세 설정)
 logging:
   config: classpath:logback-spring.xml
+
+# Spring Boot Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 

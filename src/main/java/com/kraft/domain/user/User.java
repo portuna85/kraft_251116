@@ -21,6 +21,7 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @Column(nullable = false)
     private String name;
 
@@ -37,10 +38,10 @@ public class User extends BaseEntity {
     /**
      * 양방향 연관관계: User가 작성한 Post 목록
      * - mappedBy: Post 엔티티의 'user' 필드에 의해 매핑됨 (연관관계의 주인은 Post)
-     * - cascade: User 삭제 시 작성한 Post도 함께 삭제 (선택사항)
-     * - orphanRemoval: User에서 Post 제거 시 DB에서도 삭제
+     * - cascade: PERSIST, MERGE만 적용 (삭제는 서비스 계층에서 명시적으로 처리)
+     * - orphanRemoval: 제거됨 (데이터 일관성을 위해 서비스 계층에서 처리)
      */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private final List<Post> posts = new ArrayList<>();
 
     @Builder
@@ -94,6 +95,9 @@ public class User extends BaseEntity {
      * 양방향 연관관계 동기화
      */
     public void addPost(Post post) {
+        if (post == null) {
+            throw new IllegalArgumentException("Post는 null일 수 없습니다.");
+        }
         this.posts.add(post);
         if (post.getUser() != this) {
             post.setUser(this);
@@ -105,6 +109,9 @@ public class User extends BaseEntity {
      * 양방향 연관관계 동기화
      */
     public void removePost(Post post) {
+        if (post == null) {
+            return;
+        }
         this.posts.remove(post);
         if (post.getUser() == this) {
             post.setUser(null);

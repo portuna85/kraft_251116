@@ -2,7 +2,7 @@
 
 // 게시글 상세보기 모달
 function viewPost(postId) {
-    fetch(`/api/post/${postId}`)
+    fetch(`/api/posts/${postId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('게시글을 불러올 수 없습니다.');
@@ -55,7 +55,7 @@ function deletePost(postId) {
         return;
     }
 
-    fetch(`/api/post/${postId}`, {
+    fetch(`/api/posts/${postId}`, {
         method: 'DELETE'
     })
         .then(response => {

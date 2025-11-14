@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Kraft 게시판 CRUD 테스트</h1>
+
+    <div class="section">
+        <h2>1. 게시글 목록 조회 (READ ALL)</h2>
+        <button onclick="getPosts()">목록 조회</button>
+        <div id="postsResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. 게시글 생성 (CREATE)</h2>
+        <input type="text" id="newTitle" placeholder="제목" style="width: 300px;">
+        <input type="text" id="newAuthor" placeholder="작성자" style="width: 200px;">
+        <textarea id="newContent" placeholder="내용" style="width: 100%; height: 80px;"></textarea>
+        <button onclick="createPost()">게시글 생성</button>
+        <div id="createResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. 게시글 상세 조회 (READ)</h2>
+        <input type="number" id="getPostId" placeholder="게시글 ID">
+        <button onclick="getPost()">조회</button>
+        <div id="getResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. 게시글 수정 (UPDATE)</h2>
+        <input type="number" id="updateId" placeholder="게시글 ID">
+        <input type="text" id="updateTitle" placeholder="새 제목" style="width: 300px;">
+        <textarea id="updateContent" placeholder="새 내용" style="width: 100%; height: 80px;"></textarea>
+        <button onclick="updatePost()">게시글 수정</button>
+        <div id="updateResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. 게시글 삭제 (DELETE)</h2>
+        <input type="number" id="deleteId" placeholder="게시글 ID">
+        <button onclick="deletePost()">게시글 삭제</button>
+        <div id="deleteResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/posts';
+
+        // 1. 목록 조회
+        async function getPosts() {
+            try {
+                const response = await fetch(API_BASE);
+                const data = await response.json();
+                document.getElementById('postsResult').innerHTML =
+                    `<p class="success">✓ 성공: ${data.length}개의 게시글</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('postsResult').innerHTML =
+                    `<p class="error">✗ 오류: ${error.message}</p>`;
+            }
+        }
+
+        // 2. 생성
+        async function createPost() {
+            const title = document.getElementById('newTitle').value;
+            const author = document.getElementById('newAuthor').value;
+            const content = document.getElementById('newContent').value;
+
+            if (!title || !author || !content) {
+                alert('모든 필드를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, author, content })
+                });
+                const id = await response.json();
+                document.getElementById('createResult').innerHTML =
+                    `<p class="success">✓ 생성 성공! ID: ${id}</p>`;
+
+                // 입력 필드 초기화
+                document.getElementById('newTitle').value = '';
+                document.getElementById('newAuthor').value = '';
+                document.getElementById('newContent').value = '';
+
+                // 목록 자동 갱신
+                getPosts();
+            } catch (error) {
+                document.getElementById('createResult').innerHTML =
+                    `<p class="error">✗ 오류: ${error.message}</p>`;
+            }
+        }
+
+        // 3. 상세 조회
+        async function getPost() {
+            const id = document.getElementById('getPostId').value;
+            if (!id) {
+                alert('게시글 ID를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}`);
+                const data = await response.json();
+                document.getElementById('getResult').innerHTML =
+                    `<p class="success">✓ 조회 성공</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('getResult').innerHTML =
+                    `<p class="error">✗ 오류: ${error.message}</p>`;
+            }
+        }
+
+        // 4. 수정
+        async function updatePost() {
+            const id = document.getElementById('updateId').value;
+            const title = document.getElementById('updateTitle').value;
+            const content = document.getElementById('updateContent').value;
+
+            if (!id || !title || !content) {
+                alert('모든 필드를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+                const updatedId = await response.json();
+                document.getElementById('updateResult').innerHTML =
+                    `<p class="success">✓ 수정 성공! ID: ${updatedId}</p>`;
+
+                // 목록 자동 갱신
+                getPosts();
+            } catch (error) {
+                document.getElementById('updateResult').innerHTML =
+                    `<p class="error">✗ 오류: ${error.message}</p>`;
+            }
+        }
+
+        // 5. 삭제
+        async function deletePost() {
+            const id = document.getElementById('deleteId').value;
+            if (!id) {
+                alert('게시글 ID를 입력하세요.');
+                return;
+            }
+
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}`, {
+                    method: 'DELETE'
+                });
+                const deletedId = await response.json();
+                document.getElementById('deleteResult').innerHTML =
+                    `<p class="success">✓ 삭제 성공! ID: ${deletedId}</p>`;
+
+                // 목록 자동 갱신
+                getPosts();
+            } catch (error) {
+                document.getElementById('deleteResult').innerHTML =
+                    `<p class="error">✗ 오류: ${error.message}</p>`;
+            }
+        }
+
+        // 페이지 로드 시 목록 자동 조회
+        window.addEventListener('DOMContentLoaded', () => {
+            getPosts();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,49 @@
+name: PR Quality Gate
+        fail_ci_if_error: false
+        name: codecov-umbrella
+        flags: unittests
+        files: ./build/reports/jacoco/test/jacocoTestReport.xml
+      with:
+      uses: codecov/codecov-action@v3
+      if: always()
+    - name: Code coverage report
+
+          build/test-results/**/*.xml
+        files: |
+      with:
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+    - name: Comment PR with test results
+
+      run: ./gradlew jacocoTestReport || true
+    - name: Test coverage
+
+      run: ./gradlew test
+    - name: Run tests
+
+      run: ./gradlew clean build
+    - name: Build
+
+      run: chmod +x gradlew
+    - name: Grant execute permission for gradlew
+
+        cache: 'gradle'
+        distribution: 'temurin'
+        java-version: '25'
+      with:
+      uses: actions/setup-java@v4
+    - name: Set up JDK 25
+
+      uses: actions/checkout@v4
+    - name: Checkout code
+    steps:
+
+    runs-on: ubuntu-latest
+  pr-validation:
+jobs:
+
+    types: [opened, synchronize, reopened]
+  pull_request:
+on:
+
+

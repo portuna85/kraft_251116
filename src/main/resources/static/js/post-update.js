@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<span class="loading"></span> 수정 중...';
 
         // API 호출
-        fetch(`/api/post/${id}`, {
+        fetch(`/api/posts/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function deletePost() {
 
     const id = document.getElementById('id').value;
 
-    fetch(`/api/post/${id}`, {
+    fetch(`/api/posts/${id}`, {
         method: 'DELETE'
     })
     .then(response => {

@@ -1,0 +1,46 @@
+version: 2
+      prefix: "chore"
+    commit-message:
+      - "docker"
+      - "dependencies"
+    labels:
+    open-pull-requests-limit: 5
+      day: "monday"
+      interval: "weekly"
+    schedule:
+    directory: "/"
+  - package-ecosystem: "docker"
+  # Docker 업데이트
+
+      prefix: "ci"
+    commit-message:
+      - "github-actions"
+      - "dependencies"
+    labels:
+    open-pull-requests-limit: 5
+      day: "monday"
+      interval: "weekly"
+    schedule:
+    directory: "/"
+  - package-ecosystem: "github-actions"
+  # GitHub Actions 워크플로우 업데이트
+
+      include: "scope"
+      prefix: "chore"
+    commit-message:
+      - "gradle"
+      - "dependencies"
+    labels:
+      - "your-github-username"
+    reviewers:
+    open-pull-requests-limit: 10
+      time: "09:00"
+      day: "monday"
+      interval: "weekly"
+    schedule:
+    directory: "/"
+  - package-ecosystem: "gradle"
+  # Gradle 의존성 업데이트
+updates:
+
+

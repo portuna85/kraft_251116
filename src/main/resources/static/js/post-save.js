@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<span class="loading"></span> 등록 중...';
 
         // API 호출
-        fetch('/api/post', {
+        fetch('/api/posts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
